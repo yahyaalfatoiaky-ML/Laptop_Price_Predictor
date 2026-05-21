@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 #  PAGE CONFIG
 # ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="LaptopIQ – Price Predictor",
+    page_title="Laptop Price Predictor",
     page_icon="💻",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -20,13 +20,13 @@ st.set_page_config(
 # ─────────────────────────────────────────────
 TRANSLATIONS = {
     "English": {
-        "app_name": "LaptopIQ",
+        "app_name": "Laptop Price Predictor",
         "app_sub": "ML Price Intelligence",
         "nav_home": "🏠  Home",
         "nav_predict": "🔮  Predict Price",
         "nav_analysis": "📊  Analysis Dashboard",
         "hero_tag": "💻  AI-POWERED",
-        "hero_title": "LaptopIQ",
+        "hero_title": "Laptop Price Predictor",
         "hero_title2": "Price Predictor",
         "hero_sub": "Predict laptop prices intelligently using Machine Learning",
         "laptops_analysed": "Laptops Analysed",
@@ -128,13 +128,13 @@ TRANSLATIONS = {
         "segment": "الفئة السعرية",
     },
     "Français": {
-        "app_name": "LaptopIQ",
+        "app_name": "Laptop",
         "app_sub": "Intelligence des Prix ML",
         "nav_home": "🏠  Accueil",
         "nav_predict": "🔮  Prédire le Prix",
         "nav_analysis": "📊  Tableau de Bord",
         "hero_tag": "💻  ALIMENTÉ PAR IA",
-        "hero_title": "LaptopIQ",
+        "hero_title": "Laptop",
         "hero_title2": "Prédicteur de Prix",
         "hero_sub": "Prédisez les prix des laptops intelligemment avec le Machine Learning",
         "laptops_analysed": "Laptops Analysés",
