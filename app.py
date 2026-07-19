@@ -5,571 +5,292 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ─────────────────────────────────────────────
-#  PAGE CONFIG
-# ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="LaptopIQ – Price Predictor",
+    page_title="Laptop Price Predictor",
     page_icon="💻",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
 
-# ─────────────────────────────────────────────
-#  TRANSLATIONS
-# ─────────────────────────────────────────────
 TRANSLATIONS = {
     "English": {
-        "app_name": "LaptopIQ",
-        "app_sub": "ML Price Intelligence",
-        "nav_home": "🏠  Home",
-        "nav_predict": "🔮  Predict Price",
-        "nav_analysis": "📊  Analysis Dashboard",
-        "hero_tag": "💻  AI-POWERED",
-        "hero_title": "LaptopIQ",
-        "hero_title2": "Price Predictor",
-        "hero_sub": "Predict laptop prices intelligently using Machine Learning",
-        "laptops_analysed": "Laptops Analysed",
-        "avg_price": "Avg Price",
-        "brands": "Brands",
-        "avg_rating": "Avg Rating",
-        "price_dist": "Price Distribution",
-        "price_dist_sub": "How prices are spread across the dataset",
-        "top_brands": "Top Brands",
-        "top_brands_sub": "Average price by brand",
-        "predict_title": "🔮 Predict Laptop Price",
-        "predict_sub": "Fill in the specs and get an instant price estimate",
-        "model_warn": "⚠️  **model.joblib** not found – showing a demo prediction instead.",
-        "brand": "Brand 🏷️",
-        "processor": "Processor ⚡",
-        "ram": "RAM (GB) 🧠",
-        "storage": "Storage (GB) 💾",
-        "screen": "Screen Size (inches) 🖥️",
-        "cores": "CPU Cores 🔲",
-        "threads": "CPU Threads 🔁",
-        "rating": "User Rating ⭐",
-        "specs_score": "Specs Score 📈",
-        "predict_btn": "🚀  Predict Price",
+        "title": "Laptop Price Predictor",
+        "subtitle": "Enter the specifications to get an estimated price in MAD",
+        "brand": "Brand",
+        "processor": "Processor",
+        "ram": "RAM (GB)",
+        "storage": "Storage (GB)",
+        "cores": "Cores",
+        "threads": "Threads",
+        "specs_score": "Specs Score",
+        "predict_btn": "🔮 Predict Price",
         "est_price": "Estimated Price",
-        "similar": "Similar Laptops in Dataset",
-        "confidence": "Prediction Confidence",
-        "feature_imp": "Feature Importance",
-        "feature_imp_sub": "How each spec contributes to the price",
-        "price_range": "Price Range Simulation",
-        "price_range_sub": "See how price changes with RAM upgrade",
-        "analysis_title": "📊 Analysis Dashboard",
-        "analysis_sub": "Insights from the laptop dataset",
-        "price_vs_ram": "Price vs RAM",
-        "price_vs_storage": "Price vs Storage",
-        "specs_vs_price": "Specs Score vs Price (size = RAM)",
-        "brand_dist": "Brand Distribution",
-        "corr_matrix": "Correlation Matrix",
-        "corr_sub": "Relationship between numerical features",
-        "language": "🌐 Language",
-        "model_info": "Upload your `model.joblib` in the same folder as this app.",
         "low": "Budget",
         "mid": "Mid-Range",
         "high": "Premium",
         "ultra": "Ultra Premium",
-        "segment": "Price Segment",
-    },
-    "العربية": {
-        "app_name": "لابتوب IQ",
-        "app_sub": "ذكاء أسعار الحواسيب",
-        "nav_home": "🏠  الرئيسية",
-        "nav_predict": "🔮  توقع السعر",
-        "nav_analysis": "📊  لوحة التحليل",
-        "hero_tag": "💻  مدعوم بالذكاء الاصطناعي",
-        "hero_title": "لابتوب IQ",
-        "hero_title2": "توقع الأسعار",
-        "hero_sub": "توقع أسعار اللابتوب بذكاء باستخدام التعلم الآلي",
-        "laptops_analysed": "لابتوب تم تحليله",
-        "avg_price": "متوسط السعر",
-        "brands": "العلامات التجارية",
-        "avg_rating": "متوسط التقييم",
-        "price_dist": "توزيع الأسعار",
-        "price_dist_sub": "كيف تتوزع الأسعار في البيانات",
-        "top_brands": "أفضل الماركات",
-        "top_brands_sub": "متوسط السعر لكل ماركة",
-        "predict_title": "🔮 توقع سعر اللابتوب",
-        "predict_sub": "أدخل المواصفات واحصل على تقدير فوري للسعر",
-        "model_warn": "⚠️  ملف **model.joblib** غير موجود – يتم عرض توقع تجريبي.",
-        "brand": "الماركة 🏷️",
-        "processor": "المعالج ⚡",
-        "ram": "الذاكرة RAM (جيجا) 🧠",
-        "storage": "التخزين (جيجا) 💾",
-        "screen": "حجم الشاشة (بوصة) 🖥️",
-        "cores": "عدد النوى 🔲",
-        "threads": "عدد الخيوط 🔁",
-        "rating": "تقييم المستخدم ⭐",
-        "specs_score": "نقاط المواصفات 📈",
-        "predict_btn": "🚀  توقع السعر",
-        "est_price": "السعر التقديري",
-        "similar": "لابتوبات مشابهة في البيانات",
-        "confidence": "مستوى الثقة في التوقع",
-        "feature_imp": "أهمية المواصفات",
-        "feature_imp_sub": "كيف تؤثر كل مواصفة على السعر",
-        "price_range": "محاكاة نطاق الأسعار",
-        "price_range_sub": "كيف يتغير السعر بترقية الذاكرة",
-        "analysis_title": "📊 لوحة التحليل",
-        "analysis_sub": "رؤى من بيانات اللابتوب",
-        "price_vs_ram": "السعر مقابل الذاكرة",
-        "price_vs_storage": "السعر مقابل التخزين",
-        "specs_vs_price": "نقاط المواصفات مقابل السعر",
-        "brand_dist": "توزيع الماركات",
-        "corr_matrix": "مصفوفة الارتباط",
-        "corr_sub": "العلاقة بين الخصائص الرقمية",
-        "language": "🌐 اللغة",
-        "model_info": "ضع ملف `model.joblib` في نفس مجلد هذا التطبيق.",
-        "low": "اقتصادي",
-        "mid": "متوسط",
-        "high": "مميز",
-        "ultra": "فائق التميز",
-        "segment": "الفئة السعرية",
+        "segment": "Segment",
+        "confidence": "Confidence",
+        "similar": "Similar Laptops",
+        "feature_imp": "Feature Importance",
+        "price_range": "Price Simulation",
+        "analysis_title": "Analysis Dashboard",
+        "price_vs_ram": "Price vs RAM",
+        "price_vs_storage": "Price vs Storage",
+        "specs_vs_price": "Specs vs Price",
+        "brand_dist": "Brand Distribution",
+        "corr_matrix": "Correlation Matrix",
+        "nav_predict": "Predict",
+        "nav_analysis": "Analysis",
+        "nav_home": "Home",
+        "laptops_analysed": "Laptops",
+        "avg_price": "Avg Price",
+        "brands": "Brands",
+        "avg_rating": "Avg Rating",
+        "price_dist": "Price Distribution",
+        "top_brands": "Top Brands",
+        "model_warn": "model.joblib not found - showing demo prediction",
+        "language": "Language",
     },
     "Français": {
-        "app_name": "LaptopIQ",
-        "app_sub": "Intelligence des Prix ML",
-        "nav_home": "🏠  Accueil",
-        "nav_predict": "🔮  Prédire le Prix",
-        "nav_analysis": "📊  Tableau de Bord",
-        "hero_tag": "💻  ALIMENTÉ PAR IA",
-        "hero_title": "LaptopIQ",
-        "hero_title2": "Prédicteur de Prix",
-        "hero_sub": "Prédisez les prix des laptops intelligemment avec le Machine Learning",
-        "laptops_analysed": "Laptops Analysés",
-        "avg_price": "Prix Moyen",
-        "brands": "Marques",
-        "avg_rating": "Note Moyenne",
-        "price_dist": "Distribution des Prix",
-        "price_dist_sub": "Comment les prix se répartissent dans les données",
-        "top_brands": "Meilleures Marques",
-        "top_brands_sub": "Prix moyen par marque",
-        "predict_title": "🔮 Prédire le Prix du Laptop",
-        "predict_sub": "Remplissez les specs et obtenez une estimation instantanée",
-        "model_warn": "⚠️  **model.joblib** introuvable – affichage d'une prédiction demo.",
-        "brand": "Marque 🏷️",
-        "processor": "Processeur ⚡",
-        "ram": "RAM (Go) 🧠",
-        "storage": "Stockage (Go) 💾",
-        "screen": "Taille Écran (pouces) 🖥️",
-        "cores": "Cœurs CPU 🔲",
-        "threads": "Threads CPU 🔁",
-        "rating": "Note Utilisateur ⭐",
-        "specs_score": "Score Specs 📈",
-        "predict_btn": "🚀  Prédire le Prix",
+        "title": "Prédicteur de Prix Laptop",
+        "subtitle": "Entrez les spécifications pour obtenir un prix estimé en MAD",
+        "brand": "Marque",
+        "processor": "Processeur",
+        "ram": "RAM (Go)",
+        "storage": "Stockage (Go)",
+        "cores": "Cœurs",
+        "threads": "Threads",
+        "specs_score": "Score Specs",
+        "predict_btn": "🔮 Prédire le Prix",
         "est_price": "Prix Estimé",
-        "similar": "Laptops Similaires dans les Données",
-        "confidence": "Confiance de Prédiction",
-        "feature_imp": "Importance des Caractéristiques",
-        "feature_imp_sub": "Comment chaque spec contribue au prix",
-        "price_range": "Simulation de Plage de Prix",
-        "price_range_sub": "Voir comment le prix évolue avec plus de RAM",
-        "analysis_title": "📊 Tableau de Bord Analytique",
-        "analysis_sub": "Aperçus du jeu de données laptops",
-        "price_vs_ram": "Prix vs RAM",
-        "price_vs_storage": "Prix vs Stockage",
-        "specs_vs_price": "Score Specs vs Prix (taille = RAM)",
-        "brand_dist": "Distribution des Marques",
-        "corr_matrix": "Matrice de Corrélation",
-        "corr_sub": "Relation entre les caractéristiques numériques",
-        "language": "🌐 Langue",
-        "model_info": "Placez votre `model.joblib` dans le même dossier que cette app.",
         "low": "Budget",
         "mid": "Milieu de Gamme",
         "high": "Premium",
         "ultra": "Ultra Premium",
-        "segment": "Segment de Prix",
+        "segment": "Segment",
+        "confidence": "Confiance",
+        "similar": "Laptops Similaires",
+        "feature_imp": "Importance",
+        "price_range": "Simulation Prix",
+        "analysis_title": "Tableau de Bord",
+        "price_vs_ram": "Prix vs RAM",
+        "price_vs_storage": "Prix vs Stockage",
+        "specs_vs_price": "Specs vs Prix",
+        "brand_dist": "Distribution Marques",
+        "corr_matrix": "Matrice Corrélation",
+        "nav_predict": "Prédire",
+        "nav_analysis": "Analyse",
+        "nav_home": "Accueil",
+        "laptops_analysed": "Laptops",
+        "avg_price": "Prix Moyen",
+        "brands": "Marques",
+        "avg_rating": "Note Moyenne",
+        "price_dist": "Distribution Prix",
+        "top_brands": "Meilleures Marques",
+        "model_warn": "model.joblib introuvable - prédiction demo",
+        "language": "Langue",
     },
-    "Español": {
-        "app_name": "LaptopIQ",
-        "app_sub": "Inteligencia de Precios ML",
-        "nav_home": "🏠  Inicio",
-        "nav_predict": "🔮  Predecir Precio",
-        "nav_analysis": "📊  Panel de Análisis",
-        "hero_tag": "💻  IMPULSADO POR IA",
-        "hero_title": "LaptopIQ",
-        "hero_title2": "Predictor de Precios",
-        "hero_sub": "Predice precios de laptops de forma inteligente con Machine Learning",
-        "laptops_analysed": "Laptops Analizadas",
-        "avg_price": "Precio Promedio",
-        "brands": "Marcas",
-        "avg_rating": "Calificación Promedio",
-        "price_dist": "Distribución de Precios",
-        "price_dist_sub": "Cómo se distribuyen los precios en el dataset",
-        "top_brands": "Mejores Marcas",
-        "top_brands_sub": "Precio promedio por marca",
-        "predict_title": "🔮 Predecir Precio del Laptop",
-        "predict_sub": "Ingresa las especificaciones y obtén una estimación instantánea",
-        "model_warn": "⚠️  **model.joblib** no encontrado – mostrando predicción demo.",
-        "brand": "Marca 🏷️",
-        "processor": "Procesador ⚡",
-        "ram": "RAM (GB) 🧠",
-        "storage": "Almacenamiento (GB) 💾",
-        "screen": "Tamaño de Pantalla (pulgadas) 🖥️",
-        "cores": "Núcleos CPU 🔲",
-        "threads": "Hilos CPU 🔁",
-        "rating": "Calificación del Usuario ⭐",
-        "specs_score": "Puntuación de Specs 📈",
-        "predict_btn": "🚀  Predecir Precio",
-        "est_price": "Precio Estimado",
-        "similar": "Laptops Similares en el Dataset",
-        "confidence": "Confianza de Predicción",
-        "feature_imp": "Importancia de Características",
-        "feature_imp_sub": "Cómo contribuye cada spec al precio",
-        "price_range": "Simulación de Rango de Precios",
-        "price_range_sub": "Cómo cambia el precio al actualizar la RAM",
-        "analysis_title": "📊 Panel de Análisis",
-        "analysis_sub": "Perspectivas del dataset de laptops",
-        "price_vs_ram": "Precio vs RAM",
-        "price_vs_storage": "Precio vs Almacenamiento",
-        "specs_vs_price": "Puntuación Specs vs Precio (tamaño = RAM)",
-        "brand_dist": "Distribución de Marcas",
-        "corr_matrix": "Matriz de Correlación",
-        "corr_sub": "Relación entre características numéricas",
-        "language": "🌐 Idioma",
-        "model_info": "Coloca tu `model.joblib` en la misma carpeta que esta app.",
-        "low": "Económico",
-        "mid": "Gama Media",
-        "high": "Premium",
-        "ultra": "Ultra Premium",
-        "segment": "Segmento de Precio",
+    "العربية": {
+        "title": "متنبئ أسعار اللابتوب",
+        "subtitle": "أدخل المواصفات للحصول على سعر تقديري بالدرهم",
+        "brand": "الماركة",
+        "processor": "المعالج",
+        "ram": "الذاكرة (جيجا)",
+        "storage": "التخزين (جيجا)",
+        "cores": "النوى",
+        "threads": "الخيوط",
+        "specs_score": "نقاط المواصفات",
+        "predict_btn": "🔮 توقع السعر",
+        "est_price": "السعر التقديري",
+        "low": "اقتصادي",
+        "mid": "متوسط",
+        "high": "مميز",
+        "ultra": "فائق التميز",
+        "segment": "الفئة",
+        "confidence": "الثقة",
+        "similar": "لابتوبات مشابهة",
+        "feature_imp": "أهمية المواصفات",
+        "price_range": "محاكاة السعر",
+        "analysis_title": "لوحة التحليل",
+        "price_vs_ram": "السعر مقابل الذاكرة",
+        "price_vs_storage": "السعر مقابل التخزين",
+        "specs_vs_price": "المواصفات مقابل السعر",
+        "brand_dist": "توزيع الماركات",
+        "corr_matrix": "مصفوفة الارتباط",
+        "nav_predict": "توقع",
+        "nav_analysis": "تحليل",
+        "nav_home": "الرئيسية",
+        "laptops_analysed": "لابتوب",
+        "avg_price": "متوسط السعر",
+        "brands": "الماركات",
+        "avg_rating": "متوسط التقييم",
+        "price_dist": "توزيع الأسعار",
+        "top_brands": "أفضل الماركات",
+        "model_warn": "ملف model.joblib غير موجود - توقع تجريبي",
+        "language": "اللغة",
     },
 }
 
-# ─────────────────────────────────────────────
-#  GLOBAL CSS
-# ─────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg:        #0d0f1a;
-  --card:      #161929;
-  --border:    #252840;
-  --accent1:   #6c63ff;
-  --accent2:   #ff6584;
-  --accent3:   #43e97b;
-  --accent4:   #f7971e;
-  --text:      #e8eaf6;
-  --muted:     #8b91b8;
-  --radius:    16px;
+  --bg: #0f0c29;
+  --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  --card: rgba(255,255,255,0.05);
+  --card-border: rgba(255,255,255,0.1);
+  --text: #ffffff;
+  --text-muted: #a0a0c0;
+  --accent1: #6366f1;
+  --accent2: #ec4899;
+  --accent3: #10b981;
+  --accent4: #f59e0b;
 }
 
 html, body, [data-testid="stAppViewContainer"] {
     background: var(--bg) !important;
+    background-image: var(--bg-gradient) !important;
     color: var(--text) !important;
-    font-family: 'DM Sans', sans-serif !important;
+    font-family: 'Poppins', sans-serif !important;
+    min-height: 100vh;
 }
 
-[data-testid="stSidebar"] {
-    background: var(--card) !important;
-    border-right: 1px solid var(--border) !important;
+[data-testid="stHeader"] { display: none !important; }
+
+/* Main container centered */
+.block-container {
+    max-width: 800px !important;
+    padding: 2rem 1rem !important;
 }
-[data-testid="stSidebar"] * { color: var(--text) !important; }
 
-header[data-testid="stHeader"] { display: none !important; }
+/* Title styling */
+.title-gradient {
+    background: linear-gradient(90deg, #6366f1, #ec4899, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    text-align: center;
+    margin: 0;
+    letter-spacing: -1px;
+}
 
+.subtitle {
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 0.95rem;
+    margin: 0.5rem 0 2rem;
+}
+
+/* Form cards */
+.form-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    margin-bottom: 1rem;
+}
+
+/* Select boxes */
+[data-baseweb="select"] > div {
+    background: rgba(255,255,255,0.08) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-radius: 12px !important;
+    color: var(--text) !important;
+}
+
+/* Slider */
+[data-testid="stSlider"] > div > div > div {
+    background: rgba(255,255,255,0.1) !important;
+}
+[data-testid="stSlider"] [role="slider"] {
+    background: linear-gradient(90deg, #6366f1, #ec4899) !important;
+    border: 2px solid white !important;
+    box-shadow: 0 0 10px rgba(99,102,241,0.5) !important;
+}
+
+/* Button */
 .stButton > button {
-    background: linear-gradient(135deg, var(--accent1), var(--accent2)) !important;
+    background: linear-gradient(90deg, #6366f1, #ec4899) !important;
     color: white !important;
     border: none !important;
-    border-radius: 12px !important;
-    padding: 0.6rem 2rem !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
+    border-radius: 50px !important;
+    padding: 0.9rem 3rem !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
     cursor: pointer !important;
-    transition: transform 0.2s, box-shadow 0.2s !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 8px 30px rgba(99,102,241,0.4) !important;
+    width: 100% !important;
 }
 .stButton > button:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(108,99,255,0.4) !important;
+    box-shadow: 0 12px 40px rgba(99,102,241,0.6) !important;
 }
 
-.stSelectbox label, .stSlider label, .stNumberInput label {
-    color: var(--muted) !important;
+/* Labels */
+.stSelectbox label, .stSlider label {
+    color: var(--text-muted) !important;
     font-weight: 500 !important;
+    font-size: 0.85rem !important;
 }
 
-[data-baseweb="select"] > div {
-    background: var(--card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    color: var(--text) !important;
+/* Result card */
+.result-card {
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(236,72,153,0.15));
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 24px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 1.5rem;
+    backdrop-filter: blur(20px);
 }
 
-input[type="number"] {
-    background: var(--card) !important;
-    color: var(--text) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
+/* Navigation */
+.nav-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.nav-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 0.6rem 1.5rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.nav-btn:hover, .nav-btn.active {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.5);
+    color: white;
 }
 
-[data-testid="metric-container"] {
-    background: var(--card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius) !important;
-    padding: 1rem !important;
-}
-[data-testid="stMetricValue"] { color: var(--accent3) !important; font-family: 'Syne', sans-serif !important; }
-[data-testid="stMetricLabel"] { color: var(--muted) !important; }
-
-[data-baseweb="tab-list"] { background: transparent !important; gap: 8px !important; }
-[data-baseweb="tab"] {
-    background: var(--card) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    color: var(--muted) !important;
-    font-family: 'DM Sans', sans-serif !important;
-    font-weight: 600 !important;
-}
-[aria-selected="true"][data-baseweb="tab"] {
-    background: linear-gradient(135deg, var(--accent1), var(--accent2)) !important;
-    color: white !important;
-    border: none !important;
+/* Language selector */
+.lang-select {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
 }
 
-/* Progress bar for confidence */
-.confidence-bar {
-    background: #252840;
-    border-radius: 50px;
-    height: 12px;
-    overflow: hidden;
-    margin-top: 6px;
-}
-.confidence-fill {
-    height: 100%;
-    border-radius: 50px;
-    background: linear-gradient(90deg, #43e97b, #6c63ff);
-    transition: width 0.8s ease;
-}
-
+/* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-hr { border-color: var(--border) !important; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────
-#  HELPERS
-# ─────────────────────────────────────────────
-def hero_banner(t):
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #1a1d35 0%, #0d0f1a 60%);
-        border: 1px solid #252840;
-        border-radius: 20px;
-        padding: 2.5rem 2.5rem 2rem;
-        margin-bottom: 2rem;
-        position: relative;
-        overflow: hidden;
-    ">
-      <div style="
-          position:absolute; top:-40px; right:-40px;
-          width:220px; height:220px;
-          background: radial-gradient(circle, rgba(108,99,255,0.25) 0%, transparent 70%);
-          border-radius:50%;
-      "></div>
-      <div style="
-          position:absolute; bottom:-60px; left:30%;
-          width:180px; height:180px;
-          background: radial-gradient(circle, rgba(255,101,132,0.18) 0%, transparent 70%);
-          border-radius:50%;
-      "></div>
-      <p style="color:#6c63ff; font-family:'Syne',sans-serif; font-weight:700;
-                letter-spacing:3px; font-size:0.75rem; margin:0 0 0.4rem;">
-          {t['hero_tag']}
-      </p>
-      <h1 style="font-family:'Syne',sans-serif; font-size:2.6rem; font-weight:800;
-                 margin:0; color:#e8eaf6; line-height:1.15;">
-          {t['hero_title']}
-          <span style="
-              background: linear-gradient(90deg,#6c63ff,#ff6584);
-              -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-          ">{t['hero_title2']}</span>
-      </h1>
-      <p style="color:#8b91b8; margin:0.6rem 0 0; font-size:1.05rem;">
-          {t['hero_sub']}
-      </p>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def stat_card(icon, label, value, color):
-    st.markdown(f"""
-    <div style="
-        background:#161929; border:1px solid #252840; border-radius:16px;
-        padding:1.2rem 1.4rem; display:flex; align-items:center; gap:1rem;
-    ">
-      <div style="
-          font-size:1.8rem; width:52px; height:52px; border-radius:12px;
-          background:linear-gradient(135deg,{color}22,{color}11);
-          display:flex; align-items:center; justify-content:center;
-      ">{icon}</div>
-      <div>
-        <p style="color:#8b91b8; margin:0; font-size:0.8rem; font-weight:600;
-                  letter-spacing:1px; text-transform:uppercase;">{label}</p>
-        <p style="color:#e8eaf6; margin:0; font-size:1.5rem;
-                  font-family:'Syne',sans-serif; font-weight:800;">{value}</p>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def section_title(title, subtitle=""):
-    st.markdown(f"""
-    <div style="margin: 1.5rem 0 1rem;">
-      <h2 style="font-family:'Syne',sans-serif; font-weight:800;
-                 font-size:1.5rem; color:#e8eaf6; margin:0;">{title}</h2>
-      {"<p style='color:#8b91b8;margin:0.2rem 0 0;font-size:0.95rem;'>"+subtitle+"</p>" if subtitle else ""}
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def price_result_card(price, t):
-    # Determine segment
-    if price < 600:
-        segment = t["low"]; seg_color = "#43e97b"
-    elif price < 1200:
-        segment = t["mid"]; seg_color = "#6c63ff"
-    elif price < 2000:
-        segment = t["high"]; seg_color = "#f7971e"
-    else:
-        segment = t["ultra"]; seg_color = "#ff6584"
-
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #1c1e35, #161929);
-        border: 1px solid #6c63ff55;
-        border-radius: 20px;
-        padding: 2rem;
-        text-align: center;
-        box-shadow: 0 0 40px rgba(108,99,255,0.15);
-        margin-top: 1rem;
-    ">
-      <p style="color:#8b91b8; font-size:0.9rem; letter-spacing:2px;
-                text-transform:uppercase; margin:0 0 0.5rem;">{t['est_price']}</p>
-      <h1 style="
-          font-family:'Syne',sans-serif; font-weight:800; font-size:3.2rem;
-          background:linear-gradient(90deg,#43e97b,#6c63ff);
-          -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-          margin:0;
-      ">${price:,.0f}</h1>
-      <p style="color:#8b91b8; margin:0.5rem 0 0.8rem; font-size:0.85rem;">
-          ± ${price*0.92:,.0f} – ${price*1.08:,.0f}
-      </p>
-      <span style="
-          background:{seg_color}22; color:{seg_color}; border:1px solid {seg_color}55;
-          border-radius:50px; padding:0.3rem 1.2rem; font-size:0.85rem; font-weight:700;
-      ">{t['segment']}: {segment}</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def confidence_card(score, t):
-    """Animated confidence meter."""
-    bar_color = "#43e97b" if score >= 75 else "#f7971e" if score >= 50 else "#ff6584"
-    st.markdown(f"""
-    <div style="background:#161929; border:1px solid #252840; border-radius:16px;
-                padding:1.4rem 1.6rem; margin-top:1rem;">
-      <p style="color:#8b91b8; margin:0 0 0.4rem; font-size:0.85rem;
-                letter-spacing:1px; text-transform:uppercase;">{t['confidence']}</p>
-      <div style="display:flex; align-items:center; gap:1rem;">
-        <div style="flex:1; background:#252840; border-radius:50px; height:14px; overflow:hidden;">
-          <div style="height:100%; width:{score}%; border-radius:50px;
-                      background:linear-gradient(90deg,{bar_color},{bar_color}99);"></div>
-        </div>
-        <span style="font-family:'Syne',sans-serif; font-weight:800;
-                     color:{bar_color}; font-size:1.2rem; min-width:48px;">{score}%</span>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-def feature_importance_chart(ram, storage, cores, ratings, specs_score, screen_size, t):
-    """Bar chart showing how each feature contributed to the price estimate."""
-    features = ["RAM", "Storage", "Cores", "Rating", "Specs Score", "Screen"]
-    weights  = [
-        ram * 15,
-        storage * 0.3,
-        cores * 40,
-        ratings * 80,
-        specs_score * 12,
-        screen_size * 10,
-    ]
-    total = sum(weights)
-    pcts  = [round(w / total * 100, 1) for w in weights]
-
-    fig = go.Figure(go.Bar(
-        x=features, y=pcts,
-        marker=dict(
-            color=pcts,
-            colorscale=[[0, "#6c63ff"], [0.5, "#f7971e"], [1, "#43e97b"]],
-            showscale=False,
-        ),
-        text=[f"{p}%" for p in pcts],
-        textposition="outside",
-        textfont=dict(color="#e8eaf6"),
-    ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#8b91b8",
-        yaxis=dict(gridcolor="#252840", title="Contribution (%)", ticksuffix="%"),
-        xaxis=dict(gridcolor="rgba(0,0,0,0)"),
-        margin=dict(l=0, r=0, t=30, b=0),
-        height=300,
-    )
-    section_title(t["feature_imp"], t["feature_imp_sub"])
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def price_range_simulation(base_price, current_ram, t):
-    """Line chart simulating price across RAM options."""
-    rams   = [4, 8, 16, 32, 64]
-    prices = [base_price * (r / current_ram) ** 0.45 for r in rams]
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=[str(r) + " GB" for r in rams],
-        y=prices,
-        mode="lines+markers",
-        line=dict(color="#6c63ff", width=3),
-        marker=dict(size=10, color="#ff6584", line=dict(color="#fff", width=2)),
-        fill="tozeroy",
-        fillcolor="rgba(108,99,255,0.08)",
-    ))
-    # Highlight current
-    idx = rams.index(current_ram)
-    fig.add_trace(go.Scatter(
-        x=[str(current_ram) + " GB"],
-        y=[prices[idx]],
-        mode="markers",
-        marker=dict(size=16, color="#43e97b", symbol="star",
-                    line=dict(color="#fff", width=2)),
-        name="Your Config",
-        showlegend=True,
-    ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#8b91b8",
-        xaxis=dict(gridcolor="#252840"),
-        yaxis=dict(gridcolor="#252840", title="Price ($)"),
-        showlegend=False,
-        margin=dict(l=0, r=0, t=20, b=0),
-        height=280,
-    )
-    section_title(t["price_range"], t["price_range_sub"])
-    st.plotly_chart(fig, use_container_width=True)
-
-
-# ─────────────────────────────────────────────
-#  LOAD MODEL
-# ─────────────────────────────────────────────
 @st.cache_resource
 def load_model():
     try:
@@ -578,15 +299,12 @@ def load_model():
         return None
 
 
-# ─────────────────────────────────────────────
-#  MOCK DATA
-# ─────────────────────────────────────────────
 @st.cache_data
 def load_sample_data():
     np.random.seed(42)
     n = 300
     brands   = ["Dell", "HP", "Lenovo", "Asus", "Acer", "Apple", "MSI", "Samsung"]
-    procs    = ["Intel i3", "Intel i5", "Intel i7", "Intel i9",
+    procs    = ["Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9",
                 "AMD Ryzen 5", "AMD Ryzen 7", "Apple M1", "Apple M2"]
     rams     = [4, 8, 16, 32, 64]
     storages = [128, 256, 512, 1024, 2048]
@@ -606,245 +324,191 @@ def load_sample_data():
     return df
 
 
-# ─────────────────────────────────────────────
-#  SIDEBAR  NAVIGATION
-# ─────────────────────────────────────────────
-with st.sidebar:
-    # Language selector first
-    lang = st.selectbox(
-        "🌐 Language / اللغة / Langue / Idioma",
-        list(TRANSLATIONS.keys()),
-        label_visibility="visible",
-    )
-    t = TRANSLATIONS[lang]
-
-    st.markdown(f"""
-    <div style="padding:1.2rem 0 0.5rem;">
-      <p style="font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800;
-                color:#e8eaf6; margin:0;">💻 {t['app_name']}</p>
-      <p style="color:#8b91b8; font-size:0.8rem; margin:0;">{t['app_sub']}</p>
-    </div>
-    <hr style="border-color:#252840; margin:0.8rem 0;"/>
-    """, unsafe_allow_html=True)
-
-    page = st.radio(
-        "Navigation",
-        [t["nav_home"], t["nav_predict"], t["nav_analysis"]],
-        label_visibility="collapsed",
-        horizontal=False,
-    )
-
-    st.markdown(f"""
-    <hr style="border-color:#252840; margin:1rem 0;"/>
-    <p style="color:#8b91b8; font-size:0.78rem;">
-      {t['model_info']}
-    </p>
-    """, unsafe_allow_html=True)
-
-
 model = load_model()
 df    = load_sample_data()
 
 
-# ═══════════════════════════════════════════════════════════════════════
-#  PAGE 1 – HOME
-# ═══════════════════════════════════════════════════════════════════════
-if "Home" in page or "الرئيسية" in page or "Accueil" in page or "Inicio" in page:
-    hero_banner(t)
-
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: stat_card("💻", t["laptops_analysed"], f"{len(df):,}",       "#6c63ff")
-    with c2: stat_card("🏷️", t["avg_price"],        f"${df.price.mean():,.0f}", "#ff6584")
-    with c3: stat_card("📦", t["brands"],            str(df.brand.nunique()),    "#43e97b")
-    with c4: stat_card("⭐", t["avg_rating"],        f"{df.ratings.mean():.1f}", "#f7971e")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    col_a, col_b = st.columns([1.4, 1])
-
-    with col_a:
-        section_title(t["price_dist"], t["price_dist_sub"])
-        fig = px.histogram(df, x="price", nbins=40,
-                           color_discrete_sequence=["#6c63ff"])
-        fig.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#8b91b8",
-            xaxis=dict(gridcolor="#252840", title="Price ($)"),
-            yaxis=dict(gridcolor="#252840", title="Count"),
-            bargap=0.05, showlegend=False,
-            margin=dict(l=0, r=0, t=20, b=0),
-        )
-        fig.update_traces(marker_line_width=0)
-        st.plotly_chart(fig, use_container_width=True)
-
-    with col_b:
-        section_title(t["top_brands"], t["top_brands_sub"])
-        brand_avg = df.groupby("brand")["price"].mean().sort_values(ascending=True)
-        fig2 = px.bar(brand_avg, orientation="h",
-                      color=brand_avg.values,
-                      color_continuous_scale=["#6c63ff", "#ff6584", "#f7971e"])
-        fig2.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#8b91b8",
-            xaxis=dict(gridcolor="#252840", title="Avg Price ($)"),
-            yaxis=dict(gridcolor="#252840", title=""),
-            showlegend=False, coloraxis_showscale=False,
-            margin=dict(l=0, r=0, t=20, b=0),
-        )
-        st.plotly_chart(fig2, use_container_width=True)
+# Language selector at top
+lang_col, _ = st.columns([1, 3])
+with lang_col:
+    lang = st.selectbox(
+        "🌐",
+        list(TRANSLATIONS.keys()),
+        label_visibility="collapsed",
+    )
+t = TRANSLATIONS[lang]
 
 
-# ═══════════════════════════════════════════════════════════════════════
-#  PAGE 2 – PREDICT
-# ═══════════════════════════════════════════════════════════════════════
-elif "Predict" in page or "توقع" in page or "Prédire" in page or "Predecir" in page:
-    hero_banner(t)
-    section_title(t["predict_title"], t["predict_sub"])
+# Navigation
+st.markdown(f"""
+<div style="display:flex; justify-content:center; gap:0.8rem; margin-bottom:2rem;">
+    <a href="?page=home" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+       border-radius:12px; padding:0.5rem 1.2rem; color:#a0a0c0; text-decoration:none;
+       font-weight:500; font-size:0.9rem;">{t['nav_home']}</a>
+    <a href="?page=predict" style="background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.5);
+       border-radius:12px; padding:0.5rem 1.2rem; color:white; text-decoration:none;
+       font-weight:600; font-size:0.9rem;">{t['nav_predict']}</a>
+    <a href="?page=analysis" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+       border-radius:12px; padding:0.5rem 1.2rem; color:#a0a0c0; text-decoration:none;
+       font-weight:500; font-size:0.9rem;">{t['nav_analysis']}</a>
+</div>
+""", unsafe_allow_html=True)
 
+
+# Title
+st.markdown(f'<h1 class="title-gradient">💻 {t["title"]}</h1>', unsafe_allow_html=True)
+st.markdown(f'<p class="subtitle">{t["subtitle"]}</p>', unsafe_allow_html=True)
+
+
+# Get page from query params
+query_params = st.query_params
+page = query_params.get("page", "predict")
+
+
+if page == "predict":
     if model is None:
         st.warning(t["model_warn"])
 
     brands   = ["Dell", "HP", "Lenovo", "Asus", "Acer", "Apple", "MSI", "Samsung"]
-    procs    = ["Intel i3", "Intel i5", "Intel i7", "Intel i9",
+    procs    = ["Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9",
                 "AMD Ryzen 5", "AMD Ryzen 7", "Apple M1", "Apple M2"]
     rams     = [4, 8, 16, 32, 64]
     storages = [128, 256, 512, 1024, 2048]
 
-    col1, col2, col3 = st.columns(3)
+    st.markdown('<div class="form-card">', unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
 
     with col1:
         brand       = st.selectbox(t["brand"],     brands)
-        processor   = st.selectbox(t["processor"], procs)
         ram         = st.selectbox(t["ram"],        rams, index=1)
-        storage     = st.selectbox(t["storage"],    storages, index=2)
+        cores       = st.selectbox(t["cores"],   [2, 4, 6, 8, 12, 16], index=1)
+        specs_score = st.slider(t["specs_score"], 0, 100, 50)
 
     with col2:
-        screen_size = st.slider(t["screen"], 11.6, 17.3, 15.6, 0.1)
-        cores       = st.selectbox(t["cores"],   [2, 4, 6, 8, 12, 16], index=2)
-        threads     = st.selectbox(t["threads"], [4, 8, 12, 16, 24, 32], index=2)
+        processor   = st.selectbox(t["processor"], procs)
+        storage     = st.selectbox(t["storage"],    storages, index=1)
+        threads     = st.selectbox(t["threads"], [4, 8, 12, 16, 24, 32], index=1)
 
-    with col3:
-        ratings     = st.slider(t["rating"],      1.0, 5.0, 4.2, 0.1)
-        specs_score = st.slider(t["specs_score"],   0, 100, 75)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    brand_enc = brands.index(brand)
-    proc_enc  = procs.index(processor)
-    input_data = np.array([[brand_enc, ratings, specs_score, proc_enc,
-                            ram, storage, screen_size, 1920 * 1080, cores, threads]])
-
-    btn_col, _ = st.columns([1, 3])
+    btn_col, _ = st.columns([2, 1])
     with btn_col:
         predict_btn = st.button(t["predict_btn"], use_container_width=True)
 
     if predict_btn:
+        brand_enc = brands.index(brand)
+        proc_enc  = procs.index(processor)
+
         if model:
+            input_data = np.array([[brand_enc, 4.0, specs_score, proc_enc,
+                                    ram, storage, 15.6, 1920 * 1080, cores, threads]])
             price = model.predict(input_data)[0]
             confidence = min(95, 70 + int(specs_score * 0.25))
         else:
             price = (ram * 15 + storage * 0.3 + specs_score * 12
-                     + cores * 40 + ratings * 80 + 200 + brand_enc * 30)
+                     + cores * 40 + 4.0 * 80 + 200 + brand_enc * 30)
             confidence = min(88, 55 + int(specs_score * 0.3))
 
-        # Result + confidence side by side
-        res_col, conf_col = st.columns([1.2, 1])
-        with res_col:
-            price_result_card(price, t)
-        with conf_col:
-            st.markdown("<br>", unsafe_allow_html=True)
-            confidence_card(confidence, t)
+        if price < 600:
+            segment = t["low"]; seg_color = "#10B981"
+        elif price < 1200:
+            segment = t["mid"]; seg_color = "#6366F1"
+        elif price < 2000:
+            segment = t["high"]; seg_color = "#F59E0B"
+        else:
+            segment = t["ultra"]; seg_color = "#EC4899"
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="result-card">
+          <p style="color:#a0a0c0; font-size:0.85rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 0.5rem;">{t['est_price']}</p>
+          <h1 style="font-family:'Poppins',sans-serif; font-weight:800; font-size:3rem; color:white; margin:0;">{price:,.0f} MAD</h1>
+          <p style="color:#a0a0c0; margin:0.5rem 0 0.8rem; font-size:0.9rem;">Range: {price*0.88:,.0f} - {price*1.12:,.0f} MAD</p>
+          <span style="background:{seg_color}22; color:{seg_color}; border:1px solid {seg_color}50; border-radius:50px; padding:0.3rem 1rem; font-size:0.8rem; font-weight:600;">{t['segment']}: {segment}</span>
+        </div>
+        """, unsafe_allow_html=True)
 
-        # Feature importance chart
-        feature_importance_chart(ram, storage, cores, ratings, specs_score, screen_size, t)
-
-        # Price range simulation
-        price_range_simulation(price, ram, t)
-
-        # Similar laptops
-        st.markdown("<br>", unsafe_allow_html=True)
-        section_title(t["similar"])
-        similar = df[df["brand"] == brand].head(5)
-        st.dataframe(
-            similar[["brand", "processor", "ram", "storage", "screen_size", "ratings", "price"]],
-            use_container_width=True, hide_index=True,
-        )
+        bar_color = "#10B981" if confidence >= 75 else "#F59E0B" if confidence >= 50 else "#EF4444"
+        st.markdown(f"""
+        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:1.2rem; margin-top:1rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+            <span style="color:#a0a0c0; font-size:0.8rem;">{t['confidence']}</span>
+            <span style="color:{bar_color}; font-weight:700;">{confidence}%</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.1); border-radius:50px; height:8px;">
+            <div style="width:{confidence}%; height:100%; border-radius:50px; background:linear-gradient(90deg,{bar_color},{bar_color}80);"></div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════
-#  PAGE 3 – DASHBOARD
-# ═══════════════════════════════════════════════════════════════════════
-else:
-    hero_banner(t)
-    section_title(t["analysis_title"], t["analysis_sub"])
+elif page == "analysis":
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    c1, c2 = st.columns(2)
-    with c1:
-        fig = px.box(df, x="ram", y="price", color="ram",
-                     color_discrete_sequence=px.colors.sequential.Plasma)
-        fig.update_layout(
-            title=t["price_vs_ram"], paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)", font_color="#8b91b8",
-            xaxis=dict(gridcolor="#252840"), yaxis=dict(gridcolor="#252840"),
-            showlegend=False, margin=dict(l=0, r=0, t=40, b=0),
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    tab1, tab2, tab3 = st.tabs(["📈 " + t["price_vs_ram"], "🔧 " + t["specs_vs_price"], "📊 " + t["brand_dist"]])
 
-    with c2:
-        fig = px.box(df, x="storage", y="price", color="storage",
-                     color_discrete_sequence=px.colors.sequential.Viridis)
-        fig.update_layout(
-            title=t["price_vs_storage"], paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)", font_color="#8b91b8",
-            xaxis=dict(gridcolor="#252840"), yaxis=dict(gridcolor="#252840"),
-            showlegend=False, margin=dict(l=0, r=0, t=40, b=0),
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    with tab1:
+        c1, c2 = st.columns(2)
+        with c1:
+            fig = px.box(df, x="ram", y="price", color="ram", color_discrete_sequence=px.colors.sequential.Plasma)
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#a0a0c0", showlegend=False, margin=dict(l=0, r=0, t=30, b=0))
+            st.plotly_chart(fig, use_container_width=True)
+        with c2:
+            fig = px.box(df, x="storage", y="price", color="storage", color_discrete_sequence=px.colors.sequential.Viridis)
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#a0a0c0", showlegend=False, margin=dict(l=0, r=0, t=30, b=0))
+            st.plotly_chart(fig, use_container_width=True)
 
-    c3, c4 = st.columns(2)
-    with c3:
-        fig = px.scatter(df, x="specs_score", y="price", color="brand",
-                         size="ram", hover_data=["processor"],
-                         color_discrete_sequence=px.colors.qualitative.Pastel)
-        fig.update_layout(
-            title=t["specs_vs_price"],
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#8b91b8",
-            xaxis=dict(gridcolor="#252840"), yaxis=dict(gridcolor="#252840"),
-            margin=dict(l=0, r=0, t=40, b=0),
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    with tab2:
+        c1, c2 = st.columns(2)
+        with c1:
+            fig = px.scatter(df, x="specs_score", y="price", color="brand", size="ram", color_discrete_sequence=px.colors.qualitative.Pastel)
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#a0a0c0", margin=dict(l=0, r=0, t=30, b=0))
+            st.plotly_chart(fig, use_container_width=True)
+        with c2:
+            num_cols = ["ratings", "specs_score", "ram", "storage", "screen_size", "cores", "threads", "price"]
+            corr = df[num_cols].corr()
+            fig = go.Figure(go.Heatmap(z=corr.values, x=corr.columns, y=corr.columns, colorscale=[[0, "#EC4899"], [0.5, "#1F2937"], [1, "#10B981"]], zmid=0, text=np.round(corr.values, 2), texttemplate="%{text}"))
+            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#a0a0c0", margin=dict(l=0, r=0, t=20, b=0), height=400)
+            st.plotly_chart(fig, use_container_width=True)
 
-    with c4:
+    with tab3:
         brand_counts = df["brand"].value_counts()
-        fig = px.pie(values=brand_counts.values, names=brand_counts.index,
-                     hole=0.5,
-                     color_discrete_sequence=["#6c63ff","#ff6584","#43e97b",
-                                               "#f7971e","#00c9ff","#92fe9d",
-                                               "#fc466b","#3f5efb"])
-        fig.update_layout(
-            title=t["brand_dist"],
-            paper_bgcolor="rgba(0,0,0,0)", font_color="#8b91b8",
-            margin=dict(l=0, r=0, t=40, b=0),
-        )
+        fig = px.pie(values=brand_counts.values, names=brand_counts.index, hole=0.55, color_discrete_sequence=["#6366F1","#EC4899","#10B981","#F59E0B","#06B6D4","#8B5CF6","#F43F5E","#3B82F6"])
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="#a0a0c0", margin=dict(l=0, r=0, t=30, b=0))
         st.plotly_chart(fig, use_container_width=True)
 
-    section_title(t["corr_matrix"], t["corr_sub"])
-    num_cols = ["ratings", "specs_score", "ram", "storage", "screen_size", "cores", "threads", "price"]
-    corr = df[num_cols].corr()
-    fig = go.Figure(go.Heatmap(
-        z=corr.values, x=corr.columns, y=corr.columns,
-        colorscale=[[0, "#ff6584"], [0.5, "#252840"], [1, "#43e97b"]],
-        zmid=0,
-        text=np.round(corr.values, 2),
-        texttemplate="%{text}",
-    ))
-    fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#8b91b8",
-        margin=dict(l=0, r=0, t=20, b=0),
-        height=420,
-    )
-    st.plotly_chart(fig, use_container_width=True)
+
+else:  # Home page
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    metrics = [
+        ("💻", t["laptops_analysed"], f"{len(df):,}", "#6366F1"),
+        ("💰", t["avg_price"], f"{df.price.mean():,.0f} MAD", "#EC4899"),
+        ("🏷️", t["brands"], str(df.brand.nunique()), "#10B981"),
+        ("⭐", t["avg_rating"], f"{df.ratings.mean():.1f}", "#F59E0B"),
+    ]
+    for col, (icon, label, value, color) in zip([c1, c2, c3, c4], metrics):
+        with col:
+            st.markdown(f"""
+            <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:16px; padding:1.2rem; text-align:center;">
+              <div style="font-size:1.5rem; margin-bottom:0.3rem;">{icon}</div>
+              <div style="color:#a0a0c0; font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">{label}</div>
+              <div style="color:white; font-size:1.3rem; font-weight:700; margin-top:0.2rem;">{value}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    col_a, col_b = st.columns([1.4, 1])
+    with col_a:
+        fig = px.histogram(df, x="price", nbins=40, color_discrete_sequence=["#6366F1"])
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#a0a0c0", showlegend=False, margin=dict(l=0, r=0, t=20, b=0))
+        st.plotly_chart(fig, use_container_width=True)
+    with col_b:
+        brand_avg = df.groupby("brand")["price"].mean().sort_values(ascending=True)
+        fig = px.bar(brand_avg, orientation="h", color=brand_avg.values, color_continuous_scale=["#6366F1", "#EC4899", "#F59E0B"])
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="#a0a0c0", showlegend=False, coloraxis_showscale=False, margin=dict(l=0, r=0, t=20, b=0))
+        st.plotly_chart(fig, use_container_width=True)
